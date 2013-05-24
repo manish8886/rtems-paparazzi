@@ -8,13 +8,11 @@
 #define SYS_TIME_H_
 #include <rtems.h>
 #include <rtems/rtems/timer.h>
-
+#include "../includes/types.h"
 #ifndef SYS_TIME_NB_TIMER
 #define SYS_TIME_NB_TIMER 8
 #endif
 
-typedef uint8_t tid_t; ///< sys_time timer id type
-typedef bool bool_t;
 typedef void (*sys_time_cb) (tid_t id);
 
 //this structure is private to the timer appi and
