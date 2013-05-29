@@ -60,12 +60,12 @@ static uart_dev_info_t uart_dev_arry[5]={
 #define ISVALIDUARTINDEX(dev_index)      (((dev_index >=0) && (dev_index < MAX_UART_DEV_CNT)) ? TRUE : FALSE)
 
 static void uart_init(int dev_index);
-static bool_t uart_checkfreespace(int dev_index);
+static bool_t uart_checkfreespace(int dev_index,uint8_t len);
 static void uart_transmit(int dev_index,uint8_t data);
 static bool_t uart_chavailable(int dev_index);
 static uint8_t uart_getch(int dev_index);
 static bool_t uart_txrunning(int dev_index);
-static uint8_t uart_setbaudrate(int dev_index,uint32_t baudrate,bool_t hw_Ctrl_flow);
+static void uart_setbaudrate(int dev_index,uint32_t baudrate,bool_t hw_Ctrl_flow);
 
 /**
  * Only open the device if it is not opened already.We need to
@@ -78,17 +78,17 @@ static void uart_init(int dev_index){
 	rtems_status_code status;
 	rtems_name semaphore_name;
 	rtems_id sem_id;
-	if(ISUARTOPENED(dev_index))
+	if(ISUARTOPENED(dev_index)){
 		return;
 	}
-	/*Just open the UART here. Simply opening will not start the hardware.*/
+	/*Just opening will not start the UART hardware.*/
 	fd = open(uart_dev_arry[dev_index].uart_name,O_RDWR);
 	if(fd < 0){
 		fd=0;
 	}
 	//Now first set the length of receiver and transmission buffer.
 	result = ioctl(fd,APBUART_SET_TXFIFO_LEN,(void *)TX_BUFFER_LEN);
-	if(result){
+	if(result < 0){
 	#ifdef _DEBUG
 		printf("Failed to set the length of transmission Buffer for uart%d",dev_index);
 	#endif
@@ -97,7 +97,7 @@ static void uart_init(int dev_index){
 	}
 
 	result = ioctl(fd,APBUART_SET_RXFIFO_LEN,(void *)RX_BUFFER_LEN);
-	if(result){
+	if(result < 0){
 	#ifdef _DEBUG
 		printf("Failed to set the length of receiver buffer for uart%d",dev_index);
 	#endif
@@ -130,7 +130,7 @@ static void uart_init(int dev_index){
 
 	/*Just clear all the stats before starting the uart.*/
 	result = ioctl(fd,APBUART_CLR_STATS);
-	if(result){
+	if(result < 0){
 	#ifdef _DEBUG
 		printf("couldn't to clear the stats for uart%d",dev_index);
 	#endif
@@ -142,7 +142,7 @@ static void uart_init(int dev_index){
 
 	/*Just clear all the stats before starting the uart.*/
 	result = ioctl(fd,APBUART_SET_BLOCKING,0);
-	if(result){
+	if(result < 0){
 	#ifdef _DEBUG
 		printf("couldn't set uart%d for non-blocking mode",dev_index);
 	#endif
@@ -150,7 +150,7 @@ static void uart_init(int dev_index){
 
 	/*Now before returning just start the hardware uart.*/
 	result = ioctl(fd,APBUART_START);
-	if(result){
+	if(result < 0){
 	#ifdef _DEBUG
 		printf("Failed to start uart%d",dev_index);
 	#endif
@@ -161,16 +161,199 @@ static void uart_init(int dev_index){
 	uart_dev_arry[dev_index].semaphore_id = sem_id;
 	return;
 }
-static bool_t uart_checkfreespace(int dev_index){
 
-}
 static void uart_transmit(int dev_index,uint8_t data){
-	int result;
 	int fd;
-	if(!ISUARTOPENED(dev_index))
+	size_t bytes;
+	if(!ISUARTOPENED(dev_index)){
 		return;
 	}
-	fd = uart_dev_arry
-	write()
+	fd = uart_dev_arry[dev_index].fd;
+	bytes = write(fd,&data,1);
+	if(bytes < 0){
+	#ifdef _DEBUG
+		printf("Error in writing data to UART %d",dev_index);
+	#endif
+	}
+	return;
+}
+static uint8_t uart_getch(int dev_index){
+	int fd;
+	uint8_t data=0;
+	size_t bytes;
+
+	if(!ISUARTOPENED(dev_index)){
+		return 0;
+	}
+	fd = uart_dev_arry[dev_index].fd;
+	bytes = read(fd,&data,1);
+	if(bytes < 0){
+	#ifdef _DEBUG
+		printf("Error in reading data to UART %d",dev_index);
+	#endif
+	}
+
+	return data;
+}
+static void uart_setbaudrate(int dev_index,uint32_t baudrate,bool_t hw_Ctrl_flow){
+	int fd;
+	int result;
+	if(!ISUARTOPENED(dev_index)){
+			return;
+	}
+	fd = uart_dev_arry[dev_index].fd;
+	//for now ignoring the hw_Ctrl_flow parameter.
+	(void)hw_Ctrl_flow;
+	result = ioctl(fd,APBUART_SET_BAUDRATE,baudrate);
+	if(result < 0){
+	#ifdef _DEBUG
+		printf("couldn't set the baud rate of UART %d",dev_index);
+	#endif
+	}
+	return ;
+}
+static bool_t uart_txrunning(int dev_index){
+	bool_t result=true;
+	(void)dev_index;
+	(void)result;
+	return result;
+}
+static bool_t uart_checkfreespace(int dev_index,uint8_t len){
+	bool_t result=true;
+	(void)dev_index;
+	(void)len;
+	(void)result;
+	return result;
 
 }
+static bool_t uart_chavailable(int dev_index){
+	bool_t result=true;
+	(void)dev_index;
+	(void)result;
+	return result;
+}
+#ifdef USE_UART0
+void UART0Init(void){
+	uart_init(0);
+}
+bool_t UART0CheckFreeSpace(uint8_t len){
+	return uart_checkfreespace(0,len);
+}
+
+void UART0Transmit(uint8_t data){
+	return uart_transmit(0,data);
+}
+bool_t UART0ChAvailable(void){
+	return uart_chavailable(0);
+}
+uint8_t UART0Getch(void){
+	return uart_getch(0);
+}
+bool_t UART0TxRunning(void){
+	return uart_txrunning(0);
+}
+
+void UART0SetBaudrate(uint32_t baudrate){
+	return uart_setbaudrate(0,baudrate,false);
+}
+#endif
+
+#ifdef USE_UART1
+void UART1Init(void){
+	uart_init(0);
+}
+bool_t UART1CheckFreeSpace(uint8_t len){
+	return uart_checkfreespace(0,len);
+}
+
+void UART1Transmit(uint8_t data){
+	return uart_transmit(0,data);
+}
+bool_t UART0ChAvailable(void){
+	return uart_chavailable(0);
+}
+uint8_t UART1Getch(void){
+	return uart_getch(0);
+}
+bool_t UART1TxRunning(void){
+	return uart_txrunning(0);
+}
+
+void UART1SetBaudrate(uint32_t baudrate){
+	return uart_setbaudrate(0,baudrate,false);
+}
+#endif
+#ifdef USE_UART2
+void UART2Init(void){
+	uart_init(0);
+}
+bool_t UART2CheckFreeSpace(uint8_t len){
+	return uart_checkfreespace(0,len);
+}
+
+void UART2Transmit(uint8_t data){
+	return uart_transmit(0,data);
+}
+bool_t UART2ChAvailable(void){
+	return uart_chavailable(0);
+}
+uint8_t UART2Getch(void){
+	return uart_getch(0);
+}
+bool_t UART2TxRunning(void){
+	return uart_txrunning(0);
+}
+void UART2SetBaudrate(uint32_t baudrate){
+	return uart_setbaudrate(0,baudrate,false);
+}
+#endif
+#ifdef USE_UART3
+void UART3Init(void){
+	uart_init(0);
+}
+bool_t UART3CheckFreeSpace(uint8_t len){
+	return uart_checkfreespace(0,len);
+}
+
+void UART3Transmit(uint8_t data){
+	return uart_transmit(0,data);
+}
+bool_t UART3ChAvailable(void){
+	return uart_chavailable(0);
+}
+uint8_t UART3Getch(void){
+	return uart_getch(0);
+}
+bool_t UART3TxRunning(void){
+	return uart_txrunning(0);
+}
+void UART3SetBaudrate(uint32_t baudrate){
+	return uart_setbaudrate(0,baudrate,false);
+}
+#endif
+#ifdef USE_UART5
+void UART5Init(void){
+	uart_init(0);
+}
+bool_t UART5CheckFreeSpace(uint8_t len){
+	return uart_checkfreespace(0,len);
+}
+
+void UART5Transmit(uint8_t data){
+	return uart_transmit(0,data);
+}
+bool_t UART5ChAvailable(void){
+	return uart_chavailable(0);
+}
+uint8_t UART5Getch(void){
+	return uart_getch(0);
+}
+bool_t UART5TxRunning(void){
+	return uart_txrunning(0);
+}
+
+void UART5SetBaudrate(uint32_t baudrate){
+	return uart_setbaudrate(0,baudrate,false);
+}
+#endif
+
