@@ -7,7 +7,8 @@ rtems_interval ticks_per_second;
 //Call back function for RTEMS. We will provide this function to RTEMS API and
 //will call application provided callbacks when this function is called.
 static rtems_timer_service_routine timer_callback(rtems_id timerid, void *data);
-static char timer_name[SYS_TIME_NB_TIMER][4]={
+static char timer_name[SYS_TIME_NB_TIMER][4]=
+						{
 								{'T','I','M','0'},
 								{'T','I','M','1'},
 								{'T','I','M','2'},
@@ -16,7 +17,7 @@ static char timer_name[SYS_TIME_NB_TIMER][4]={
 								{'T','I','M','5'},
 								{'T','I','M','6'},
 								{'T','I','M','7'}
-							};
+						};
 
 
 void sys_time_init(void){
