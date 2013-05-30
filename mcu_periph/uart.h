@@ -8,6 +8,7 @@
 #ifndef UART_H_
 #define UART_H_
 #include "../includes/types.h"
+extern void register_apbuart_driver(void);
 #ifdef USE_UART0
 void UART0Init(void);
 bool_t UART0CheckFreeSpace(uint8_t _x);

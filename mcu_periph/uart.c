@@ -14,6 +14,7 @@
 #include <fcntl.h>
 #include <apbuart.h>
 #include "uart.h"
+#define USE_UART1
 /*
  * All communication to UART device will be done through the
  * file system call of RTEMS. Therefore we will need to enable
@@ -31,11 +32,11 @@ typedef struct {
 // Initially all UART devices has "-1" as their file
 // descriptor which will be considered as "Invalid Descriptor".
 static uart_dev_info_t uart_dev_arry[5]={
-								 {"/dev/apbuart0",{'s','e','m','0'},-1,0 },
-								 {"/dev/apbuart1",{'s','e','m','1'},-1,0 },
-								 {"/dev/apbuart2",{'s','e','m','2'},-1,0 },
-								 {"/dev/rastaio0/apbuart0",{'s','e','m','3'},-1,0 },
-								 {"/dev/rastaio0/apbuart1",{'s','e','m','4'},-1,0 }
+								 {"/dev/apbuart0",{'s','e','m','0'},0,-1 },
+								 {"/dev/apbuart1",{'s','e','m','1'},0,-1 },
+								 {"/dev/apbuart2",{'s','e','m','2'},0,-1 },
+								 {"/dev/rastaio0/apbuart0",{'s','e','m','3'},0,-1 },
+								 {"/dev/rastaio0/apbuart1",{'s','e','m','4'},0,-1 }
 							    };
 /** Note:
  * While implementing each device interface to make it available to paparazzi I
@@ -67,6 +68,9 @@ static uint8_t uart_getch(int dev_index);
 static bool_t uart_txrunning(int dev_index);
 static void uart_setbaudrate(int dev_index,uint32_t baudrate,bool_t hw_Ctrl_flow);
 
+void register_apbuart_driver(void){
+	//apbuart_register_drv();
+}
 /**
  * Only open the device if it is not opened already.We need to
  * set the length of the receiver and transmission buffer before
@@ -84,7 +88,7 @@ static void uart_init(int dev_index){
 	/*Just opening will not start the UART hardware.*/
 	fd = open(uart_dev_arry[dev_index].uart_name,O_RDWR);
 	if(fd < 0){
-		fd=0;
+		return;
 	}
 	//Now first set the length of receiver and transmission buffer.
 	result = ioctl(fd,APBUART_SET_TXFIFO_LEN,(void *)TX_BUFFER_LEN);
@@ -149,7 +153,7 @@ static void uart_init(int dev_index){
 	}
 
 	/*Now before returning just start the hardware uart.*/
-	result = ioctl(fd,APBUART_START);
+	result = ioctl(fd,APBUART_START,0);
 	if(result < 0){
 	#ifdef _DEBUG
 		printf("Failed to start uart%d",dev_index);
