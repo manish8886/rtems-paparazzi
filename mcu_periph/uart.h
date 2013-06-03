@@ -8,12 +8,12 @@
 #ifndef UART_H_
 #define UART_H_
 #include "../includes/types.h"
-extern void register_apbuart_driver(void);
+#include "../includes/uart_define.h"
 #ifdef USE_UART0
 void UART0Init(void);
 bool_t UART0CheckFreeSpace(uint8_t _x);
 void UART0Transmit(uint8_t _x);
-inline void UART0SendMessage(){
+static inline void UART0SendMessage(){
 	return;
 }
 bool_t UART0ChAvailable(void);
@@ -28,7 +28,7 @@ void UART0SetBaudrate(uint32_t baudrate);
 void UART1Init(void);
 bool_t UART1CheckFreeSpace(uint8_t _x);
 void UART1Transmit(uint8_t _x);
-inline void UART1SendMessage(){
+static inline void UART1SendMessage(){
 	return;
 }
 bool_t UART1ChAvailable(void);
@@ -45,7 +45,7 @@ void UART1SetBaudrate(uint32_t baudrate);
 void UART2Init(void);
 bool_t UART2CheckFreeSpace(uint8_t _x);
 void UART2Transmit(uint8_t _x);
-inline void UART2SendMessage(){
+static inline void UART2SendMessage(){
 	return;
 }
 bool_t UART2ChAvailable(void);
@@ -60,7 +60,7 @@ void UART2SetBaudrate(uint32_t baudrate);
 void UART3Init(void);
 bool_t UART3CheckFreeSpace(uint8_t _x);
 void UART3Transmit(uint8_t _x);
-inline void UART3SendMessage(){
+static inline void UART3SendMessage(){
 	return;
 }
 bool_t UART3ChAvailable(void);
@@ -75,7 +75,7 @@ void UART3SetBaudrate(uint32_t baudrate);
 void UART5Init(void);
 bool_t UART5CheckFreeSpace(uint8_t _x);
 void UART5Transmit(uint8_t _x);
-inline void UART5SendMessage(){
+static inline void UART5SendMessage(){
 	return;
 }
 bool_t UART5ChAvailable(void);
