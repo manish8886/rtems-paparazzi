@@ -9,6 +9,9 @@
 #include <rtems.h>
 #include <rtems/rtems/timer.h>
 #include <types.h>
+#include "../includes/types.h"
+#include "../includes/std.h"
+
 #ifndef SYS_TIME_NB_TIMER
 #define SYS_TIME_NB_TIMER 8
 #endif

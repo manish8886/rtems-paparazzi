@@ -126,7 +126,7 @@ static void uart_init(int dev_index){
   cfsetispeed(&tm,38400);
 
   /*set and flush*/
-  if(tcsetattr(fd,TCSANOW,&tm)<0){
+  if(tcsetattr(fd,TCSADRAIN,&tm)<0){
 #ifdef _DEBUG
     printf("\nError:couldn't  set attr for uart%d\n",dev_index);
 #endif

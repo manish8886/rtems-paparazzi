@@ -50,13 +50,22 @@ rtems_task Init(
   rtems_task_argument ignored
 )
 {
-	int i = 128;
+	int i = 0;
+	int newcnt =0 ;
 	UART1Init();
-	while(i>0){
-		UART1Transmit('a'+(128-i));
-		i--;
+	while(i<128){
+		if('a'+(i) <='z'){
+			UART1Transmit('a'+(i));
+		}else if(newcnt <= 9 ){
+			UART1Transmit('1'+newcnt);
+			newcnt++;
+		}
+		if(newcnt >= 10) newcnt =0 ;
+		i++;
 	}
-	rtems_task_wake_after(10000);
+
+
+	rtems_task_wake_after(1000);
 	exit(0);
 }
 
