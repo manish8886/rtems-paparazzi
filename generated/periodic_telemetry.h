@@ -1,4 +1,4 @@
-/* This file has been generated from /home/manish/Paprazzi/paparazzi/conf/messages.xml and /home/manish/Paprazzi/paparazzi/conf/telemetry/default_fixedwing.xml */
+/* This file has been generated from /home/manish/paprazzi-git/paparazzi/conf/messages.xml and /home/manish/paprazzi-git/paparazzi/conf/telemetry/default_fixedwing.xml */
 /* Please DO NOT EDIT */
 
 #ifndef _VAR_PERIODIC_H_
@@ -74,6 +74,12 @@ extern uint8_t telemetry_mode_Ap;
 #define PERIOD_PPRZ_MODE_Ap_2 (5.5)
 #define PERIOD_STATE_FILTER_STATUS_Ap_2 (7.)
 #define PERIOD_DOWNLINK_Ap_2 (5.7)
+#define TELEMETRY_MODE_Ap_raw_sensors 3
+#define PERIOD_DL_VALUE_Ap_3 (0.5)
+#define PERIOD_ALIVE_Ap_3 (2.1)
+#define PERIOD_BARO_RAW_Ap_3 (0.5)
+#define PERIOD_IR_SENSORS_Ap_3 (0.5)
+#define PERIOD_IMU_GYRO_RAW_Ap_3 (0.1)
 #define PeriodicSendAp(_trans, _dev) {  /* 60Hz */ \
   if (telemetry_mode_Ap == TELEMETRY_MODE_Ap_default) {\
     static uint8_t i15 = 0; i15++; if (i15>=15) i15=0;\
@@ -279,6 +285,26 @@ extern uint8_t telemetry_mode_Ap;
     } \
     if (i612 == 48) {\
       PERIODIC_SEND_DESIRED(_trans, _dev);\
+    } \
+  }\
+  if (telemetry_mode_Ap == TELEMETRY_MODE_Ap_raw_sensors) {\
+    static uint8_t i6 = 0; i6++; if (i6>=6) i6=0;\
+    static uint8_t i30 = 0; i30++; if (i30>=30) i30=0;\
+    static uint8_t i126 = 0; i126++; if (i126>=126) i126=0;\
+    if (i6 == 0) {\
+      PERIODIC_SEND_IMU_GYRO_RAW(_trans, _dev);\
+    } \
+    if (i30 == 6) {\
+      PERIODIC_SEND_DL_VALUE(_trans, _dev);\
+    } \
+    else if (i30 == 12) {\
+      PERIODIC_SEND_BARO_RAW(_trans, _dev);\
+    } \
+    else if (i30 == 18) {\
+      PERIODIC_SEND_IR_SENSORS(_trans, _dev);\
+    } \
+    if (i126 == 24) {\
+      PERIODIC_SEND_ALIVE(_trans, _dev);\
     } \
   }\
 }

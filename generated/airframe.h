@@ -1,4 +1,4 @@
-/* This file has been generated from /home/manish/Paprazzi/paparazzi/conf/airframes/examples/microjet.xml */
+/* This file has been generated from /home/manish/paprazzi-git/paparazzi/conf/airframes/examples/microjet.xml */
 /* Please DO NOT EDIT */
 
 #ifndef AIRFRAME_H
@@ -6,28 +6,41 @@
 
 #define AIRFRAME_NAME "Microjet"
 #define AC_ID 5
-#define MD5SUM ((uint8_t*)"\106\031\370\320\322\267\105\355\110\222\233\263\247\052\372\031")
+#define MD5SUM ((uint8_t*)"\017\215\350\321\337\041\142\227\033\244\016\317\360\374\330\313")
 
-#define SERVOS_NB 4
+#define SERVOS_DEFAULT_NB 4
+/*#include "subsystems/actuators/actuators_default.h"*/
 
 #define SERVO_MOTOR 0
 #define SERVO_MOTOR_NEUTRAL 1290
 #define SERVO_MOTOR_TRAVEL_UP 0.0541666666667
+#define SERVO_MOTOR_TRAVEL_UP_NUM 13
+#define SERVO_MOTOR_TRAVEL_UP_DEN 240
 #define SERVO_MOTOR_TRAVEL_DOWN 0
+#define SERVO_MOTOR_TRAVEL_DOWN_NUM 0
+#define SERVO_MOTOR_TRAVEL_DOWN_DEN 1
 #define SERVO_MOTOR_MAX 1810
 #define SERVO_MOTOR_MIN 1290
 
 #define SERVO_AILEVON_LEFT 1
 #define SERVO_AILEVON_LEFT_NEUTRAL 1510
 #define SERVO_AILEVON_LEFT_TRAVEL_UP -0.053125
+#define SERVO_AILEVON_LEFT_TRAVEL_UP_NUM 17
+#define SERVO_AILEVON_LEFT_TRAVEL_UP_DEN -320
 #define SERVO_AILEVON_LEFT_TRAVEL_DOWN -0.0510416666667
+#define SERVO_AILEVON_LEFT_TRAVEL_DOWN_NUM 49
+#define SERVO_AILEVON_LEFT_TRAVEL_DOWN_DEN -960
 #define SERVO_AILEVON_LEFT_MAX 2000
 #define SERVO_AILEVON_LEFT_MIN 1000
 
 #define SERVO_AILEVON_RIGHT 3
 #define SERVO_AILEVON_RIGHT_NEUTRAL 1535
 #define SERVO_AILEVON_RIGHT_TRAVEL_UP 0.0484375
+#define SERVO_AILEVON_RIGHT_TRAVEL_UP_NUM 31
+#define SERVO_AILEVON_RIGHT_TRAVEL_UP_DEN 640
 #define SERVO_AILEVON_RIGHT_TRAVEL_DOWN 0.0557291666667
+#define SERVO_AILEVON_RIGHT_TRAVEL_DOWN_NUM 107
+#define SERVO_AILEVON_RIGHT_TRAVEL_DOWN_DEN 1920
 #define SERVO_AILEVON_RIGHT_MAX 2000
 #define SERVO_AILEVON_RIGHT_MIN 1000
 
@@ -50,37 +63,55 @@
 #define AILEVON_AILERON_RATE 0.75
 #define AILEVON_ELEVATOR_RATE 0.75
 
-#define SetActuatorsFromCommands(values) { \
-  uint32_t servo_value;\
-  float command_value;\
-  int16_t _var_aileron = values[COMMAND_ROLL]  * AILEVON_AILERON_RATE;\
-  int16_t _var_elevator = values[COMMAND_PITCH] * AILEVON_ELEVATOR_RATE;\
-  command_value = values[COMMAND_THROTTLE];\
-  command_value *= command_value>0 ? SERVO_MOTOR_TRAVEL_UP : SERVO_MOTOR_TRAVEL_DOWN;\
-  servo_value = SERVO_MOTOR_NEUTRAL + (int32_t)(command_value);\
-  actuators[SERVO_MOTOR] = ChopServo(servo_value, SERVO_MOTOR_MIN, SERVO_MOTOR_MAX);\
+#define SERVO_AILEVON_RIGHT_IDX 0
+#define Set_AILEVON_RIGHT_Servo(_v) { \
+  actuators[SERVO_AILEVON_RIGHT_IDX] = Chop(_v, SERVO_AILEVON_RIGHT_MIN, SERVO_AILEVON_RIGHT_MAX); \
+  ActuatorDefaultSet(SERVO_AILEVON_RIGHT, actuators[SERVO_AILEVON_RIGHT_IDX]); \
+}
+
+#define SERVO_AILEVON_LEFT_IDX 1
+#define Set_AILEVON_LEFT_Servo(_v) { \
+  actuators[SERVO_AILEVON_LEFT_IDX] = Chop(_v, SERVO_AILEVON_LEFT_MIN, SERVO_AILEVON_LEFT_MAX); \
+  ActuatorDefaultSet(SERVO_AILEVON_LEFT, actuators[SERVO_AILEVON_LEFT_IDX]); \
+}
+
+#define SERVO_MOTOR_IDX 2
+#define Set_MOTOR_Servo(_v) { \
+  actuators[SERVO_MOTOR_IDX] = Chop(_v, SERVO_MOTOR_MIN, SERVO_MOTOR_MAX); \
+  ActuatorDefaultSet(SERVO_MOTOR, actuators[SERVO_MOTOR_IDX]); \
+}
+
+#define ACTUATORS_NB 3
+
+#define SetActuatorsFromCommands(values, AP_MODE) { \
+  int32_t servo_value;\
+  int32_t command_value;\
 \
-  Actuator(SERVO_MOTOR) = SERVOS_TICS_OF_USEC(actuators[SERVO_MOTOR]);\
+  int16_t _var_aileron = values[COMMAND_ROLL]  * AILEVON_AILERON_RATE; \
+  int16_t _var_elevator = values[COMMAND_PITCH] * AILEVON_ELEVATOR_RATE; \
+  command_value = values[COMMAND_THROTTLE]; \
+  command_value *= command_value>0 ? SERVO_MOTOR_TRAVEL_UP_NUM : SERVO_MOTOR_TRAVEL_DOWN_NUM; \
+  command_value /= command_value>0 ? SERVO_MOTOR_TRAVEL_UP_DEN : SERVO_MOTOR_TRAVEL_DOWN_DEN; \
+  servo_value = SERVO_MOTOR_NEUTRAL + command_value; \
+  Set_MOTOR_Servo(servo_value); \
 \
-  command_value = _var_elevator - _var_aileron;\
-  command_value *= command_value>0 ? SERVO_AILEVON_LEFT_TRAVEL_UP : SERVO_AILEVON_LEFT_TRAVEL_DOWN;\
-  servo_value = SERVO_AILEVON_LEFT_NEUTRAL + (int32_t)(command_value);\
-  actuators[SERVO_AILEVON_LEFT] = ChopServo(servo_value, SERVO_AILEVON_LEFT_MIN, SERVO_AILEVON_LEFT_MAX);\
+  command_value = _var_elevator - _var_aileron; \
+  command_value *= command_value>0 ? SERVO_AILEVON_LEFT_TRAVEL_UP_NUM : SERVO_AILEVON_LEFT_TRAVEL_DOWN_NUM; \
+  command_value /= command_value>0 ? SERVO_AILEVON_LEFT_TRAVEL_UP_DEN : SERVO_AILEVON_LEFT_TRAVEL_DOWN_DEN; \
+  servo_value = SERVO_AILEVON_LEFT_NEUTRAL + command_value; \
+  Set_AILEVON_LEFT_Servo(servo_value); \
 \
-  Actuator(SERVO_AILEVON_LEFT) = SERVOS_TICS_OF_USEC(actuators[SERVO_AILEVON_LEFT]);\
+  command_value = _var_elevator + _var_aileron; \
+  command_value *= command_value>0 ? SERVO_AILEVON_RIGHT_TRAVEL_UP_NUM : SERVO_AILEVON_RIGHT_TRAVEL_DOWN_NUM; \
+  command_value /= command_value>0 ? SERVO_AILEVON_RIGHT_TRAVEL_UP_DEN : SERVO_AILEVON_RIGHT_TRAVEL_DOWN_DEN; \
+  servo_value = SERVO_AILEVON_RIGHT_NEUTRAL + command_value; \
+  Set_AILEVON_RIGHT_Servo(servo_value); \
 \
-  command_value = _var_elevator + _var_aileron;\
-  command_value *= command_value>0 ? SERVO_AILEVON_RIGHT_TRAVEL_UP : SERVO_AILEVON_RIGHT_TRAVEL_DOWN;\
-  servo_value = SERVO_AILEVON_RIGHT_NEUTRAL + (int32_t)(command_value);\
-  actuators[SERVO_AILEVON_RIGHT] = ChopServo(servo_value, SERVO_AILEVON_RIGHT_MIN, SERVO_AILEVON_RIGHT_MAX);\
-\
-  Actuator(SERVO_AILEVON_RIGHT) = SERVOS_TICS_OF_USEC(actuators[SERVO_AILEVON_RIGHT]);\
-\
-  ActuatorsCommit();\
+  ActuatorsDefaultCommit();\
 }
 
 #define AllActuatorsInit() { \
-  ActuatorsInit();\
+  ActuatorsDefaultInit();\
 }
 
 #define SECTION_AUTO1 1
@@ -119,7 +150,7 @@
 #define NOMINAL_AIRSPEED 13.
 #define CARROT 5.
 #define KILL_MODE_DISTANCE (1.5*MAX_DIST_FROM_HOME)
-#define CONTROL_RATE 60
+#define CONTROL_FREQUENCY 60
 #define XBEE_INIT "ATPL2\rATRN5\rATTT80\r"
 #define ALT_KALMAN_ENABLED TRUE
 #define DEFAULT_CIRCLE_RADIUS 80.
@@ -172,6 +203,8 @@
 #define JSBSIM_MODEL "Malolo1"
 #define JSBSIM_IR_ROLL_NEUTRAL 0.
 #define JSBSIM_IR_PITCH_NEUTRAL 0.
+#define JSBSIM_LAUNCHSPEED 15.0
+#define JSBSIM_INIT "Malolo1-IC"
 
 
 #endif // AIRFRAME_H

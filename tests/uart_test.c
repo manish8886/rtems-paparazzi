@@ -10,6 +10,9 @@
 #include <system.h>
 #include <rtems/termiostypes.h>
 #include "../mcu_periph/uart.h"
+#include "../mcu_periph/sys_time.h"
+#include "../generated/periodic_telemetry.h"
+#include "../firmwares/fixedwing/ap_downlink.h"
 
 /*set the uart resource as input driven and set this resource when uart get initialised.*/
 struct drvmgr_key grlib_drv_res_apbuart0[] ={
@@ -44,27 +47,34 @@ struct drvmgr_bus_res grlib_drv_resources  ={
 rtems_task Init(
   rtems_task_argument argument
 );
-
+#define wc 5
+static const char* name[wc]={"Msg1","Msg2","Msg3","Msg4","Msg5"};
+static bool bstop = false;
+void timer_cb(tid_t tid){
+	bstop = true;
+}
 
 rtems_task Init(
   rtems_task_argument ignored
-)
-{
-	int i = 0;
-	int newcnt =0 ;
+){
+	PeriodicSendAp(UART,1);
+	sys_time_init();
 	UART1Init();
-	while(i<128){
-		if('a'+(i) <='z'){
-			UART1Transmit('a'+(i));
-		}else if(newcnt <= 9 ){
-			UART1Transmit('1'+newcnt);
-			newcnt++;
+
+	sys_time_register_timer(5*60,timer_cb);
+	int cnt = 0;
+	while(!bstop){
+		int i =0;
+		while(name[cnt][i]!=0){
+			UART1Transmit(name[cnt][i]);
+			i++;
 		}
-		if(newcnt >= 10) newcnt =0 ;
-		i++;
+		UART1Transmit(name[cnt][i]);
+		UART1Transmit('\n');
+		cnt++;
+		cnt = (cnt)%wc;
 	}
-
-
+	UART1Transmit('Z');
 	rtems_task_wake_after(1000);
 	exit(0);
 }

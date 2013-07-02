@@ -1,15 +1,13 @@
-/* This file has been generated from /home/manish/Paprazzi/paparazzi/conf/flight_plans/basic.xml */
+/* This file has been generated from /home/manish/paprazzi-git/paparazzi/conf/flight_plans/basic.xml */
 /* Please DO NOT EDIT */
 
 #ifndef FLIGHT_PLAN_H
 #define FLIGHT_PLAN_H
 
 #include "std.h"
-/*****************TODO*******************
-#include "generated/modules.h"
+/*#include "generated/modules.h"*/
 #include "subsystems/navigation/nav_line.h"
 #include "subsystems/datalink/datalink.h"
-*********************************************/
 #define FLIGHT_PLAN_NAME "Basic"
 #define NAV_UTM_EAST0 360285
 #define NAV_UTM_NORTH0 4813595
@@ -41,7 +39,7 @@
  {-119.2, 69.6, 260},\
  {274.4, 209.5, 260},\
  {177.4, 45.1, 215.0},\
- {28.8, 57.0, 185.0},\
+ {28.8, 57.0, 400.0},\
  {168.8, -13.8, 260},\
  {-114.5, 162.3, 260},\
 };
@@ -55,7 +53,7 @@
  {434628341, 12713992, 26000}, /* 1e7deg, 1e7deg, cm (hmsl=51.85m) */ \
  {434641667, 12762269, 26000}, /* 1e7deg, 1e7deg, cm (hmsl=51.85m) */ \
  {434626690, 12750704, 21500}, /* 1e7deg, 1e7deg, cm (hmsl=51.85m) */ \
- {434627483, 12732312, 18500}, /* 1e7deg, 1e7deg, cm (hmsl=51.85m) */ \
+ {434627483, 12732312, 40000}, /* 1e7deg, 1e7deg, cm (hmsl=51.85m) */ \
  {434621372, 12749792, 26000}, /* 1e7deg, 1e7deg, cm (hmsl=51.85m) */ \
  {434636693, 12714335, 26000}, /* 1e7deg, 1e7deg, cm (hmsl=51.85m) */ \
 };
@@ -137,14 +135,14 @@ static inline void auto_nav(void) {
 
     Block(3) // Takeoff
     ; // pre_call
-    if ((nav_block != 4) && (estimator_z>(ground_alt+25))) { GotoBlock(4); return; }
+    if ((nav_block != 4) && (GetPosAlt()>(ground_alt+25))) { GotoBlock(4); return; }
     switch(nav_stage) {
       Stage(0)
         kill_throttle = 0;
         NextStageAndBreak();
         break;
       Stage(1)
-        estimator_flight_time = 0;
+        autopilot_flight_time = 0;
         NextStageAndBreak();
         break;
       Stage(2)
@@ -371,7 +369,7 @@ static inline void auto_nav(void) {
         NavVerticalAutoThrottleMode(RadOfDeg(0.000000));
         NavVerticalAltitudeMode(WaypointAlt(10), 0.);
         NavCircleWaypoint(10, nav_radius);
-        if (And(NavQdrCloseTo((DegOfRad(baseleg_out_qdr)-((nav_radius/fabs(nav_radius))*10))),(10>fabs((estimator_z-WaypointAlt(WP__BASELEG)))))) NextStageAndBreak();
+        if (And(NavQdrCloseTo((DegOfRad(baseleg_out_qdr)-((nav_radius/fabs(nav_radius))*10))),(10>fabs((GetPosAlt()-WaypointAlt(WP__BASELEG)))))) NextStageAndBreak();
         break;
       default:
       Stage(3)
@@ -383,7 +381,7 @@ static inline void auto_nav(void) {
 
     Block(14) // final
     ; // pre_call
-    if ((nav_block != 15) && ((ground_alt+10)>estimator_z)) { GotoBlock(15); return; }
+    if ((nav_block != 15) && ((ground_alt+10)>GetPosAlt())) { GotoBlock(15); return; }
     switch(nav_stage) {
       Stage(0)
         if (NavApproachingFrom(9,8,CARROT)) NextStageAndBreakFrom(9) else {

@@ -120,7 +120,8 @@ static void uart_init(int dev_index){
   tm.c_cflag |= CS8;
 
   /*For Non Blocking I/O.*/
-  tm.c_cc[VTIME]=tm.c_cc[VMIN]=0;
+  tm.c_cc[VTIME]=0;
+  tm.c_cc[VMIN]=1;
 
   /*set initial baud rate*/
   cfsetispeed(&tm,38400);
