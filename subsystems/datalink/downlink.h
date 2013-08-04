@@ -30,10 +30,30 @@
 
 #include <inttypes.h>
 
-/*#include "generated/modules.h"*/
+#include "generated/modules.h"
 #include "messages.h"
 #include "generated/airframe.h" // AC_ID is required
 
+#if defined SITL
+
+#ifdef SIM_UART
+#include "sim_uart.h"
+#include "subsystems/datalink/pprz_transport.h"
+#include "subsystems/datalink/xbee.h"
+#else /* SIM_UART */
+/** Software In The Loop simulation uses IVY bus directly as the transport layer */
+#include "ivy_transport.h"
+#endif
+
+#else /** SITL */
+#include "subsystems/datalink/pprz_transport.h"
+#if USE_AUDIO_TELEMETRY
+#include "subsystems/datalink/audio_telemetry.h"
+#endif
+#ifdef USE_USB_SERIAL
+#include "mcu_periph/usb_serial.h"
+#endif
+#endif /** !SITL */
 
 #ifndef DefaultChannel
 #define DefaultChannel DOWNLINK_TRANSPORT

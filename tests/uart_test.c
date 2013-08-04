@@ -14,6 +14,54 @@
 #include "../generated/periodic_telemetry.h"
 #include "../firmwares/fixedwing/ap_downlink.h"
 
+
+#include <math.h>
+#include "mcu_periph/sys_time.h"
+
+// Sensors
+#if USE_GPS
+#include "subsystems/gps.h"
+#endif
+#if USE_IMU
+#include "subsystems/imu.h"
+#endif
+#if USE_AHRS
+#include "subsystems/ahrs.h"
+#endif
+#if USE_AHRS_ALIGNER
+#include "subsystems/ahrs/ahrs_aligner.h"
+#endif
+#if USE_BAROMETER
+#include "subsystems/sensors/baro.h"
+#endif
+#include "subsystems/ins.h"
+
+
+// autopilot & control
+#include "state.h"
+#include "firmwares/fixedwing/autopilot.h"
+#include "firmwares/fixedwing/stabilization/stabilization_attitude.h"
+#include CTRL_TYPE_H
+#include "subsystems/nav.h"
+#include "generated/flight_plan.h"
+#ifdef TRAFFIC_INFO
+#include "subsystems/navigation/traffic_info.h"
+#endif
+
+// datalink & telemetry
+#include "subsystems/datalink/datalink.h"
+#include "subsystems/settings.h"
+#include "firmwares/fixedwing/ap_downlink.h"
+
+// modules & settings
+#include "generated/modules.h"
+#include "generated/settings.h"
+#if defined RADIO_CONTROL || defined RADIO_CONTROL_AUTO1
+#include "rc_settings.h"
+#endif
+
+
+
 /*set the uart resource as input driven and set this resource when uart get initialised.*/
 struct drvmgr_key grlib_drv_res_apbuart0[] ={
 												{"mode",KEY_TYPE_INT,((unsigned int)TERMIOS_IRQ_DRIVEN)},
@@ -44,35 +92,32 @@ struct drvmgr_bus_res grlib_drv_resources  ={
 															}
 											};
 
+//declare static variable here
+static uint8_t  mcu1_status;
+static int32_t current;
+
 rtems_task Init(
   rtems_task_argument argument
 );
 #define wc 5
-static const char* name[wc]={"Msg1","Msg2","Msg3","Msg4","Msg5"};
+//static const char* name[wc]={"Msg1","Msg2","Msg3","Msg4","Msg5"};
 static bool bstop = false;
 void timer_cb(tid_t tid){
 	bstop = true;
 }
 
+
 rtems_task Init(
   rtems_task_argument ignored
 ){
-	PeriodicSendAp(UART,1);
+
 	sys_time_init();
 	UART1Init();
-
 	sys_time_register_timer(5*60,timer_cb);
-	int cnt = 0;
+	unsigned int cnt = 0,i=0;
 	while(!bstop){
-		int i =0;
-		while(name[cnt][i]!=0){
-			UART1Transmit(name[cnt][i]);
-			i++;
-		}
-		UART1Transmit(name[cnt][i]);
-		UART1Transmit('\n');
-		cnt++;
-		cnt = (cnt)%wc;
+		//UART1Transmit('a'+ ((i++)%26));
+		PeriodicSendAp(DefaultChannel, DefaultDevice);
 	}
 	UART1Transmit('Z');
 	rtems_task_wake_after(1000);

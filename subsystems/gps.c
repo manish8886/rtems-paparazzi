@@ -66,3 +66,11 @@ uint32_t gps_tow_from_sys_ticks(uint32_t sys_ticks)
 
   return itow_now;
 }
+inline bool_t GpsIsLost(void) {
+  if (sys_time.nb_sec - gps.last_fix_time > GPS_TIMEOUT) {
+    gps.fix = GPS_FIX_NONE;
+    return TRUE;
+  }
+  return FALSE;
+}
+

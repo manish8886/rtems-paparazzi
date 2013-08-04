@@ -111,13 +111,6 @@ extern void gps_impl_init(void);
 
 inline bool_t GpsIsLost(void);
 
-inline bool_t GpsIsLost(void) {
-  if (sys_time.nb_sec - gps.last_fix_time > GPS_TIMEOUT) {
-    gps.fix = GPS_FIX_NONE;
-    return TRUE;
-  }
-  return FALSE;
-}
 
 
 /**

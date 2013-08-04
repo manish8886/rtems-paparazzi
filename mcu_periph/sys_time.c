@@ -2,7 +2,9 @@
 #include <rtems/rtems/timer.h>
 #include "sys_time.h"
 
-struct sys_time_timer timers[SYS_TIME_NB_TIMER];
+//struct sys_time_timer timers[SYS_TIME_NB_TIMER];
+struct sys_time sys_time;
+
 rtems_interval ticks_per_second;
 //Call back function for RTEMS. We will provide this function to RTEMS API and
 //will call application provided callbacks when this function is called.
@@ -25,11 +27,11 @@ void sys_time_init(void){
 	rtems_clock_get(RTEMS_CLOCK_GET_TICKS_PER_SECOND,&ticks_per_second);
 	//Just traverse over all the timers and initialize each entry.
 	for(i= 0; i<SYS_TIME_NB_TIMER ;i++){
-		timers[i].index_array=-1;
-		timers[i].duration=0;
-		timers[i].cb=NULL;
-		timers[i].elapsed=false;
-		timers[i].sys_id = 0;
+		sys_time.timer[i].index_array=-1;
+		sys_time.timer[i].duration=0;
+		sys_time.timer[i].cb=NULL;
+		sys_time.timer[i].elapsed=false;
+		sys_time.timer[i].sys_id = 0;
 	}
 
 }
@@ -46,7 +48,7 @@ int sys_time_register_timer(float duration, sys_time_cb cb) {
 	uint8_t empty_slot;
 	//create the timer.
 	for(empty_slot= 0;empty_slot<SYS_TIME_NB_TIMER;empty_slot++){
-		if(timers[empty_slot].index_array==-1)
+		if(sys_time.timer[empty_slot].index_array==-1)
 			break;
 
 	}
@@ -60,21 +62,21 @@ int sys_time_register_timer(float duration, sys_time_cb cb) {
 		return -1;
 
 	//initialize the particular timer
-	timers[empty_slot].cb          = cb;
-	timers[empty_slot].duration    = duration*ticks_per_second;
-	timers[empty_slot].elapsed     = false;
-	timers[empty_slot].index_array = empty_slot;
-	timers[empty_slot].sys_id      = timerID;
+	sys_time.timer[empty_slot].cb          = cb;
+	sys_time.timer[empty_slot].duration    = duration*ticks_per_second;
+	sys_time.timer[empty_slot].elapsed     = false;
+	sys_time.timer[empty_slot].index_array = empty_slot;
+	sys_time.timer[empty_slot].sys_id      = timerID;
 
 
-	status = rtems_timer_fire_after(timers[empty_slot].sys_id,timers[empty_slot].duration,timer_callback,(void *)(&timers[empty_slot]));
+	status = rtems_timer_fire_after(sys_time.timer[empty_slot].sys_id,sys_time.timer[empty_slot].duration,timer_callback,(void *)(&sys_time.timer[empty_slot]));
 	if(status){
 		//initialize the particular timer
-		timers[empty_slot].cb          = NULL;
-		timers[empty_slot].duration    = 0;
-		timers[empty_slot].elapsed     = false;
-		timers[empty_slot].index_array = -1;
-		timers[empty_slot].sys_id      = 0;
+		sys_time.timer[empty_slot].cb          = NULL;
+		sys_time.timer[empty_slot].duration    = 0;
+		sys_time.timer[empty_slot].elapsed     = false;
+		sys_time.timer[empty_slot].index_array = -1;
+		sys_time.timer[empty_slot].sys_id      = 0;
 		return -1;
 	}
 	return empty_slot;
@@ -82,17 +84,17 @@ int sys_time_register_timer(float duration, sys_time_cb cb) {
 
 //Paparazzi cancel means just delete the timer from RTEMS
 void sys_time_cancel_timer(tid_t id){
-	rtems_timer_delete(timers[id].sys_id);
-	timers[id].cb          = (sys_time_cb)NULL;
-	timers[id].duration    = 0;
-	timers[id].elapsed     = false;
-	timers[id].index_array = -1;
-	timers[id].sys_id      = 0;
+	rtems_timer_delete(sys_time.timer[id].sys_id);
+	sys_time.timer[id].cb          = (sys_time_cb)NULL;
+	sys_time.timer[id].duration    = 0;
+	sys_time.timer[id].elapsed     = false;
+	sys_time.timer[id].index_array = -1;
+	sys_time.timer[id].sys_id      = 0;
 }
 
 bool_t sys_time_check_and_ack_timer(tid_t id){
-	if(timers[id].elapsed==true){
-		timers[id].elapsed=false;
+	if(sys_time.timer[id].elapsed==true){
+		sys_time.timer[id].elapsed=false;
 		return true;
 	}
 	return false;
@@ -100,10 +102,10 @@ bool_t sys_time_check_and_ack_timer(tid_t id){
 //Here we need to first cancel the timer and again
 //initialise it through "rtems_timer_fire_after".
 void sys_time_update_timer(tid_t id, float duration){
-	rtems_timer_cancel(timers[id].sys_id);
+	rtems_timer_cancel(sys_time.timer[id].sys_id);
 	//then update the duration
-	timers[id].duration = duration*ticks_per_second;
-	rtems_timer_fire_after(timers[id].sys_id,timers[id].duration,timer_callback,(void *)(&timers[id]));
+	sys_time.timer[id].duration = duration*ticks_per_second;
+	rtems_timer_fire_after(sys_time.timer[id].sys_id,sys_time.timer[id].duration,timer_callback,(void *)(&sys_time.timer[id]));
 	return;
 }
 //Callback: Don't call user level api functions from the

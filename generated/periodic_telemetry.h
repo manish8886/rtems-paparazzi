@@ -314,7 +314,7 @@ extern uint8_t telemetry_mode_Ap;
 #ifndef TELEMETRY_MODE_FBW
 #define TELEMETRY_MODE_FBW 0
 #endif
-uint8_t telemetry_mode_Fbw = TELEMETRY_MODE_FBW;
+static uint8_t telemetry_mode_Fbw = TELEMETRY_MODE_FBW;
 #else /* PERIODIC_C_FBW not defined (general header) */
 extern uint8_t telemetry_mode_Fbw;
 #endif /* PERIODIC_C_FBW */
