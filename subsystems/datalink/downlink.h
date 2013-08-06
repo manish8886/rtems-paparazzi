@@ -47,6 +47,9 @@
 
 #else /** SITL */
 #include "subsystems/datalink/pprz_transport.h"
+#if USE_IVY
+#include "ivy_transport.h"
+#endif
 #if USE_AUDIO_TELEMETRY
 #include "subsystems/datalink/audio_telemetry.h"
 #endif
@@ -62,6 +65,16 @@
 #ifndef DefaultDevice
 #define DefaultDevice DOWNLINK_DEVICE
 #endif
+
+#ifndef IVYCHANNEL
+#define IVYCHANNEL IVY_TRANSPORT
+#endif
+
+#ifndef IVYDEVICE
+#define IVYDEVICE DOWNLINK_DEVICE
+#endif
+
+
 
 /** Counter of messages not sent because of unavailibity of the output buffer*/
 extern uint8_t downlink_nb_ovrn;

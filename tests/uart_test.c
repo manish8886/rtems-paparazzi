@@ -106,20 +106,26 @@ void timer_cb(tid_t tid){
 	bstop = true;
 }
 
+extern void sim_use_gps_pos(double lat, double lon, double alt, double course, double gspeed, double climb, double time);
+extern void sim_update_sv();
 
 rtems_task Init(
   rtems_task_argument ignored
 ){
-
 	sys_time_init();
 	UART1Init();
 	sys_time_register_timer(5*60,timer_cb);
 	unsigned int cnt = 0,i=0;
+	sim_use_gps_pos(1.0, 2.0, 3.0, 4.0, 5.0,6.0,7.0);
+	sim_update_sv();
 	while(!bstop){
 		//UART1Transmit('a'+ ((i++)%26));
 		PeriodicSendAp(DefaultChannel, DefaultDevice);
+#if USE_IVY
+		PeriodicSendAp(IVYCHANNEL, IVYDEVICE);
+#endif
 	}
-	UART1Transmit('Z');
+	//UART1Transmit('Z');
 	rtems_task_wake_after(1000);
 	exit(0);
 }
