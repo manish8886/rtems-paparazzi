@@ -120,7 +120,6 @@ rtems_task Init(
 	sim_use_gps_pos(1.0, 2.0, 3.0, 4.0, 5.0,6.0,7.0);
 	sim_update_sv();
 	while(!bstop){
-
 //		PeriodicSendAp(DefaultChannel, DefaultDevice);
 		#if USE_IVY
 		PeriodicSendAp(IVYCHANNEL, IVYDEVICE);
