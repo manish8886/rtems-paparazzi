@@ -94,7 +94,7 @@ extern uint16_t adc0_val[];
 #endif
 
 static inline void fbw_downlink_periodic_task(void) {
-  PeriodicSendFbw(DefaultChannel,DefaultDevice)
+ //PeriodicSendFbw(DefaultChannel,DefaultDevice)
 }
 
 
