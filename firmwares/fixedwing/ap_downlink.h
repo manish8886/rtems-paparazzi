@@ -218,7 +218,7 @@
 
 #define PERIODIC_SEND_TUNE_ROLL(_trans, _dev) DOWNLINK_SEND_TUNE_ROLL(_trans, _dev, &(stateGetBodyRates_f()->p), &(stateGetNedToBodyEulers_f()->phi), &h_ctl_roll_setpoint);
 
-#if USE_GPS || defined SITL
+#if USE_GPS || defined SITL || defined SHITL
 #define PERIODIC_SEND_GPS_SOL(_trans, _dev) DOWNLINK_SEND_GPS_SOL(_trans, _dev, &gps.pacc, &gps.sacc, &gps.pdop, &gps.num_sv)
 #else
 #define PERIODIC_SEND_GPS_SOL(_trans, _dev) {}

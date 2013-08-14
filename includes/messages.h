@@ -2183,7 +2183,7 @@
 #define DOWNLINK_SEND_TIMESTAMP(_trans, _dev, timestamp){ \
 	if (DownlinkCheckFreeSpace(_trans, _dev, DownlinkSizeOf(_trans, _dev, 0+4))) {\
 	  DownlinkCountBytes(_trans, _dev, DownlinkSizeOf(_trans, _dev, 0+4)); \
-	  DownlinkStartMessage(_trans, _dev, "TIMESTAMP", DL_TIMESTAMP, 0+4) \
+	  DownlinkStartMessage(_trans, _dev, "TIMESTAMP", DL_TIMESTAMP, 0+4); \
 	  DownlinkPutUint32ByAddr(_trans, _dev, (timestamp)); \
 	  DownlinkEndMessage(_trans, _dev ) \
 	} else \

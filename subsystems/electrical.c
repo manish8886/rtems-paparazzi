@@ -64,12 +64,12 @@ PRINT_CONFIG_VAR(CURRENT_ESTIMATION_NONLINEARITY)
 }
 
 void electrical_periodic(void) {
-#if defined(ADC_CHANNEL_VSUPPLY) && !defined(SITL)
+#if defined(ADC_CHANNEL_VSUPPLY) && !defined(SITL) && !defined(SHITL)
   electrical.vsupply = 10 * VoltageOfAdc((electrical_priv.vsupply_adc_buf.sum/electrical_priv.vsupply_adc_buf.av_nb_sample));
 #endif
 
 #ifdef ADC_CHANNEL_CURRENT
-#ifndef SITL
+#if ! (defined SITL || defined SHITL)
   electrical.current = MilliAmpereOfAdc((electrical_priv.current_adc_buf.sum/electrical_priv.current_adc_buf.av_nb_sample));
   /* Prevent an overflow on high current spikes when using the motor brake */
   BoundAbs(electrical.current, 65000);

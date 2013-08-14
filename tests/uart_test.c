@@ -16,6 +16,7 @@
 
 
 #include <math.h>
+#include <stdio.h>
 #include "mcu_periph/sys_time.h"
 
 // Sensors
@@ -119,11 +120,11 @@ rtems_task Init(
 	sim_use_gps_pos(1.0, 2.0, 3.0, 4.0, 5.0,6.0,7.0);
 	sim_update_sv();
 	while(!bstop){
-		//UART1Transmit('a'+ ((i++)%26));
-		PeriodicSendAp(DefaultChannel, DefaultDevice);
-#if USE_IVY
+
+//		PeriodicSendAp(DefaultChannel, DefaultDevice);
+		#if USE_IVY
 		PeriodicSendAp(IVYCHANNEL, IVYDEVICE);
-#endif
+		#endif
 	}
 	//UART1Transmit('Z');
 	rtems_task_wake_after(1000);

@@ -29,9 +29,7 @@ void UART0SetBaudrate(uint32_t baudrate);
 void UART1Init(void);
 bool_t UART1CheckFreeSpace(uint8_t _x);
 void UART1Transmit(uint8_t _x);
-static inline void UART1SendMessage(){
-	return;
-}
+inline void UART1SendMessage();
 bool_t UART1ChAvailable(void);
 uint8_t UART1Getch(void);
 bool_t UART1TxRunning(void);

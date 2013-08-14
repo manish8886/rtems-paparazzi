@@ -325,6 +325,9 @@ void UART1Transmit(uint8_t data){
 bool_t UART1ChAvailable(void){
   return uart_chavailable(1);
 }
+void UART1SendMessage(){
+	return;
+}
 uint8_t UART1Getch(void){
   return uart_getch(1);
 }

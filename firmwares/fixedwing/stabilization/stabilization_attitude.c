@@ -314,7 +314,7 @@ void h_ctl_attitude_loop ( void ) {
 inline static void h_ctl_roll_loop( void ) {
   float err = stateGetNedToBodyEulers_f()->phi - h_ctl_roll_setpoint;
   struct FloatRates* body_rate = stateGetBodyRates_f();
-#ifdef SITL
+#ifdef SITL || SHITL
   static float last_err = 0;
   body_rate->p = (err - last_err)/(1/60.);
   last_err = err;
