@@ -280,7 +280,7 @@ static bool_t uart_checkfreespace(int dev_index,uint8_t len){
 
 }
 static bool_t uart_chavailable(int dev_index){
-  bool_t result=true;
+  bool_t result=false;
   (void)dev_index;
   (void)result;
   return result;
