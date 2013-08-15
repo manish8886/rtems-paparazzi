@@ -312,6 +312,9 @@ void UART0SetBaudrate(uint32_t baudrate){
 #endif
 
 #ifdef USE_UART1
+void uart1_init(void){
+	UART1Init();
+}
 void UART1Init(void){
   uart_init(1);
 }

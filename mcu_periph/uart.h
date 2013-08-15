@@ -26,6 +26,7 @@ void UART0SetBaudrate(uint32_t baudrate);
 #endif // USE_UART0
 
 #ifdef USE_UART1
+extern void uart1_init(void);
 void UART1Init(void);
 bool_t UART1CheckFreeSpace(uint8_t _x);
 void UART1Transmit(uint8_t _x);
