@@ -1,11 +1,13 @@
 #include <rtems.h>
-#include <rtems/rtems/timer.h>
 #include "sys_time.h"
 
 //struct sys_time_timer timers[SYS_TIME_NB_TIMER];
 struct sys_time sys_time;
 
-rtems_interval ticks_per_second;
+
+
+
+
 //Call back function for RTEMS. We will provide this function to RTEMS API and
 //will call application provided callbacks when this function is called.
 static rtems_timer_service_routine timer_callback(rtems_id timerid, void *data);
@@ -24,7 +26,10 @@ static char timer_name[SYS_TIME_NB_TIMER][4]=
 
 void sys_time_init(void){
 	int i;
-	rtems_clock_get(RTEMS_CLOCK_GET_TICKS_PER_SECOND,&ticks_per_second);
+	/*rtems_clock_get(RTEMS_CLOCK_GET_TICKS_PER_SECOND,&sys_time.ticks_per_sec);*/
+	sys_time.ticks_per_sec=SYS_TIME_FREQUENCY;
+	sys_time.resolution = 1./(sys_time.ticks_per_sec);
+
 	//Just traverse over all the timers and initialize each entry.
 	for(i= 0; i<SYS_TIME_NB_TIMER ;i++){
 		sys_time.timer[i].index_array=-1;
@@ -63,7 +68,7 @@ int sys_time_register_timer(float duration, sys_time_cb cb) {
 
 	//initialize the particular timer
 	sys_time.timer[empty_slot].cb          = cb;
-	sys_time.timer[empty_slot].duration    = duration*ticks_per_second;
+	sys_time.timer[empty_slot].duration    = (duration*(sys_time.ticks_per_sec*1.))/*ticks_per_second*/;
 	sys_time.timer[empty_slot].elapsed     = false;
 	sys_time.timer[empty_slot].index_array = empty_slot;
 	sys_time.timer[empty_slot].sys_id      = timerID;
@@ -93,18 +98,19 @@ void sys_time_cancel_timer(tid_t id){
 }
 
 bool_t sys_time_check_and_ack_timer(tid_t id){
+	bool_t result=false;
 	if(sys_time.timer[id].elapsed==true){
 		sys_time.timer[id].elapsed=false;
-		return true;
+		result=true;
 	}
-	return false;
+	return result;
 }
 //Here we need to first cancel the timer and again
 //initialise it through "rtems_timer_fire_after".
 void sys_time_update_timer(tid_t id, float duration){
 	rtems_timer_cancel(sys_time.timer[id].sys_id);
 	//then update the duration
-	sys_time.timer[id].duration = duration*ticks_per_second;
+	sys_time.timer[id].duration = (duration*sys_time.ticks_per_sec*1.0) /*ticks_per_second*/;
 	rtems_timer_fire_after(sys_time.timer[id].sys_id,sys_time.timer[id].duration,timer_callback,(void *)(&sys_time.timer[id]));
 	return;
 }
@@ -113,6 +119,10 @@ void sys_time_update_timer(tid_t id, float duration){
 //in rtems_tick context not in the applicatios. I need
 //to do more investigation about this.But for now it is working.
 rtems_timer_service_routine timer_callback(rtems_id timerid, void *data){
+
+	/*first at every callback update the number of ticks and seconds since boot.*/
+	sys_time.nb_tick = rtems_clock_get_ticks_since_boot();
+	sys_time.nb_sec = (sys_time.nb_tick)*(sys_time.resolution);
 	struct sys_time_timer *timer = (struct sys_time_timer *)data;
 	timer->elapsed = true;
 	if(timer->cb)

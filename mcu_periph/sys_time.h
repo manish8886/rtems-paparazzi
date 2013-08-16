@@ -8,14 +8,20 @@
 #define SYS_TIME_H_
 #include <rtems.h>
 #include <rtems/rtems/timer.h>
-#include <types.h>
-#include "../includes/types.h"
-#include "../includes/std.h"
+#include <rtems/rtems/types.h>
 
+#include "std.h"
+#include "system_time_config.h"
 #ifndef SYS_TIME_NB_TIMER
 #define SYS_TIME_NB_TIMER 8
 #endif
 
+/**
+ * (Default) sys_time timer frequency in Hz.
+ * sys_time.resolution is set from this define.
+ */
+
+typedef uint8_t tid_t; // sys_time timer id type
 typedef void (*sys_time_cb) (tid_t id);
 
 //this structure is private to the timer appi and
@@ -45,11 +51,6 @@ struct sys_time {
   uint32_t cpu_ticks_per_sec;     ///< cpu ticks per second
 };
 extern struct sys_time sys_time;
-
-
-extern rtems_interval ticks_per_second;
-
-
 
 
 extern void sys_time_init(void);

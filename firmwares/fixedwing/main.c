@@ -82,5 +82,5 @@ rtems_task Init(
     Fbw(event_task);
     Ap(event_task);
   }
-  return 0;
+  return ;
 }
