@@ -14,7 +14,7 @@
 
 // currently needed to get nav_utm_zone0
 #include "subsystems/navigation/common_nav.h"
-#include "subsystems/gps/gps_sim.h"
+
 
 void sim_use_gps_pos(double lat, double lon, double alt, double course, double gspeed, double climb, double time) {
   gps.fix = 3; // Mode 3D
