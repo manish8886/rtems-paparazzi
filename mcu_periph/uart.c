@@ -59,8 +59,8 @@ static uart_dev_info_t uart_dev_arry[MAX_UART_DEV_CNT ]={
  * 3.If more than one task want to use the same UART at the same time access to device will
  * be syncrionised.
  */
-#define TX_BUFFER_LEN					 128
-#define RX_BUFFER_LEN					 128
+#define TX_BUFFER_LEN					 1024
+#define RX_BUFFER_LEN					 1024
 #define ISUARTOPENED(dev_index)          (uart_dev_arry[dev_index].fd != -1) ? TRUE : FALSE
 #define ISVALIDUARTINDEX(dev_index)      (((dev_index >=0) && (dev_index < MAX_UART_DEV_CNT)) ? TRUE : FALSE)
 
