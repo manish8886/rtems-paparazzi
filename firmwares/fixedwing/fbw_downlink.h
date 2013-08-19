@@ -59,7 +59,8 @@
 #ifdef RADIO_CONTROL_TYPE_PPM
 #define PERIODIC_SEND_PPM(_trans, _dev) {                           \
   uint16_t ppm_pulses_usec[RADIO_CONTROL_NB_CHANNEL];        \
-  for (int i=0;i<RADIO_CONTROL_NB_CHANNEL;i++)               \
+  int i;\
+  for ( i=0;i<RADIO_CONTROL_NB_CHANNEL;i++)               \
     ppm_pulses_usec[i] = USEC_OF_RC_PPM_TICKS(ppm_pulses[i]); \
   DOWNLINK_SEND_PPM(_trans, _dev,                            \
                     &radio_control.frame_rate,               \
@@ -94,7 +95,7 @@ extern uint16_t adc0_val[];
 #endif
 
 static inline void fbw_downlink_periodic_task(void) {
- //PeriodicSendFbw(DefaultChannel,DefaultDevice)
+		PeriodicSendFbw(DefaultChannel,DefaultDevice)
 }
 
 
