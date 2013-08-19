@@ -48,6 +48,10 @@
 #include "subsystems/gps.h"
 #endif
 
+#ifdef SHITL
+#include "arch/sim/jsbsim_hw.h"
+#endif
+
 
 #include "subsystems/navigation/common_nav.h"
 #include "generated/settings.h"
@@ -158,7 +162,33 @@ void dl_parse_msg(void) {
 #endif
   } else
 #endif /** WIND_INFO */
+/*
+#ifdef SHITL
+	  if(msg_id== DL_HITL_GPS_COMMON){
+		  double lat    = DL_HITL_GPS_COMMON_lat(dl_buffer);
+		  double lon    = DL_HITL_GPS_COMMON_lon(dl_buffer);
+		  double alt    = DL_HITL_GPS_COMMON_alt(dl_buffer);
+		  double course = DL_HITL_GPS_COMMON_course(dl_buffer);
+		  double gspeed = DL_HITL_GPS_COMMON_gspeed(dl_buffer);
+		  double climb  = DL_HITL_GPS_COMMON_climb(dl_buffer);
+		  double time   = DL_HITL_GPS_COMMON_time(dl_buffer);
+		  sim_use_gps_pos(lat, lon, alt, course, gspeed, climb, time);
+		  sim_update_sv();
 
+	  }else if(msg_id == DL_HITL_IR_AHRS){
+		  double roll   = DL_HITL_IR_AHRS_ir_id(dl_buffer);
+		  double pitch  = DL_HITL_IR_AHRS_pitch(dl_buffer);
+		  double yaw    = DL_HITL_IR_AHRS_yaw(dl_buffer);
+		  double p      = DL_HITL_IR_AHRS_p(dl_buffer);
+		  double q      = DL_HITL_IR_AHRS_q(dl_buffer);
+		  double r      = DL_HITL_IR_AHRS_r(dl_buffer);
+		  // copy to AHRS
+		  provide_attitude_and_rates(roll, pitch, yaw, p, q, r);
+
+		  // copy IR
+		  set_ir(roll, pitch);
+	  }else
+#endif*/
 #ifdef HITL
   /** Infrared and GPS sensors are replaced by messages on the datalink */
   if (msg_id == DL_HITL_INFRARED) {
