@@ -280,10 +280,32 @@ static bool_t uart_checkfreespace(int dev_index,uint8_t len){
 
 }
 static bool_t uart_chavailable(int dev_index){
-  bool_t result=false;
-  (void)dev_index;
-  (void)result;
-  return result;
+  int fd;
+  bool_t bresult;
+  size_t bytesQueued;
+  rtems_id sem_id;
+
+  if(!ISUARTOPENED(dev_index)){
+	  return 0;
+  }
+  fd = uart_dev_arry[dev_index].fd;
+  sem_id = uart_dev_arry[dev_index].semaphore_id;
+
+  if(rtems_semaphore_obtain(sem_id,RTEMS_WAIT,0)!=RTEMS_SUCCESSFUL){
+	 /*an error must be returned.*/
+    return false;
+  }
+  if(ioctl(fd,FIONREAD,&bytesQueued)==-1){
+	  rtems_semaphore_release(sem_id);
+	  return false;
+  }
+  if(bytesQueued)
+   bresult=true;
+  else
+	bresult=false;
+  rtems_semaphore_release(sem_id);
+  return bresult;
+
 }
 #ifdef USE_UART0
 void UART0Init(void){
