@@ -1,0 +1,164 @@
+#include "jsbsim_thread.h"
+#include "paparazzi.h"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#include <math/FGLocation.h>
+#pragma GCC diagnostic pop
+
+
+void JSBSimThread::set_value(string name, double value) {
+  FDMExec->GetPropertyManager()->GetNode(name)->setDoubleValue(value);
+}
+
+
+void JSBSimThread::jsbsim_periodic(){
+  bool result;
+  /* read actuators positions and feed JSBSim inputs */
+  copy_inputs_to_jsbsim();
+  if (run_model) {
+    result = FDMExec->Run();
+  }
+  /* check if still flying */
+  result =  check_crash_jsbsim();
+  
+  /* read outputs from model state */
+  copy_outputs_from_jsbsim();
+}
+
+double JSBSimThread::normalize_from_pprz(int command){
+  double cmd_norm = (double)command / MAX_PPRZ;
+  BoundAbs(cmd_norm, MAX_PPRZ);
+  return cmd_norm;
+}
+void JSBSimThread::copy_inputs_to_jsbsim(){
+
+}
+double JSBSimThread::get_value(string name) {
+  return FDMExec->GetPropertyManager()->GetNode(name)->getDoubleValue();
+}
+
+void JSBSimThread::copy_outputs_from_jsbsim(){
+  
+  static double gps_period = 0.;
+
+  // copy GPS pos
+  gps_period += DT;
+  if (gps_period > GPS_PERIOD) {
+    double lat    = get_value(FDMExec, "position/lat-gc-rad");
+    double lon    = get_value(FDMExec, "position/long-gc-rad");
+    double alt    = get_value(FDMExec, "position/h-sl-meters");
+    double course = get_value(FDMExec, "attitude/heading-true-rad");
+    double gspeed = get_value(FDMExec, "velocities/vg-fps") * FT2M;
+    double climb  = get_value(FDMExec, "velocities/v-down-fps") * (-FT2M);
+    double time   = get_value(FDMExec, "simulation/sim-time-sec");
+    sim_use_gps_pos(lat, lon, alt, course, gspeed, climb, time);
+    sim_update_sv();
+    gps_period = 0.;
+  }
+  //print(FDMExec);
+  double roll   = get_value(FDMExec, "attitude/roll-rad");
+  double pitch  = get_value(FDMExec, "attitude/pitch-rad");
+  double yaw    = get_value(FDMExec, "attitude/heading-true-rad");
+  double p      = get_value(FDMExec, "velocities/p-rad_sec");
+  double q      = get_value(FDMExec, "velocities/q-rad_sec");
+  double r      = get_value(FDMExec, "velocities/r-rad_sec");
+
+  // copy to AHRS
+  provide_attitude_and_rates(roll, pitch, yaw, p, q, r);
+
+  // copy IR
+  set_ir(roll, pitch);
+
+  // copy Bat level
+  double bat    = 12.; // get_value(FDMExec, "propulsion/total-fuel-lbs");
+  update_bat(bat);
+
+}
+
+void JSBSimThread::jsbsim_init(){
+  // *** SET UP JSBSIM *** //
+  char* root = getenv("PAPARAZZI_HOME");
+  if (root == NULL) {
+    cerr << "PAPARAZZI_HOME is not defined" << endl;
+    exit(0);
+  }
+  string pprzRoot = string(root);
+  
+#ifdef JSBSIM_MODEL
+  AircraftName = JSBSIM_MODEL;
+#endif
+#ifdef JSBSIM_INIT
+  ICName = JSBSIM_INIT;
+#endif
+  
+  FDMExec = new JSBSim::FGFDMExec();
+  
+  /* Set simulation time step */
+  FDMExec->Setsim_time(0.);
+  FDMExec->Setdt(DT);
+  cout << "Simulation delta " << FDMExec->GetDeltaT() << endl;
+
+  FDMExec->DisableOutput();
+  FDMExec->SetDebugLevel(0); // No DEBUG messages
+
+  if (!AircraftName.empty()) {
+
+    if ( ! FDMExec->LoadModel( pprzRoot + "/conf/simulator",
+                               pprzRoot + "/conf/simulator",
+                               pprzRoot + "/conf/simulator",
+                               AircraftName)){
+      cerr << "  JSBSim could not be started" << endl << endl;
+      delete FDMExec;
+      exit(-1);
+    }
+    
+    JSBSim::FGInitialCondition *IC = FDMExec->GetIC();
+    if(!ICName.empty()) {
+      if (!IC->Load(ICName)) {
+        delete FDMExec;
+        cerr << "Initialization from file unsuccessful" << endl;
+        exit(-1);
+      }
+    }
+    else {
+
+      // FGInitialCondition::SetAltitudeASLFtIC
+      // requires this function to be called
+      // before itself
+      IC->SetVgroundFpsIC(0.);
+
+      // Use flight plan initial conditions
+      IC->SetLatitudeDegIC(NAV_LAT0 / 1e7);
+      IC->SetLongitudeDegIC(NAV_LON0 / 1e7);
+
+      IC->SetAltitudeASLFtIC((GROUND_ALT + 2.0) / FT2M);
+      IC->SetTerrainElevationFtIC(GROUND_ALT / FT2M);
+      IC->SetPsiDegIC(QFU);
+      IC->SetVgroundFpsIC(0.);
+
+      //initRunning for all engines
+      FDMExec->GetPropulsion()->InitRunning(-1);
+      if (!FDMExec->RunIC()) {
+        cerr << "Initialization from flight plan unsuccessful" << endl;
+        exit(-1);
+      }
+    }
+  } else {
+    cerr << "  No Aircraft given" << endl << endl;
+    delete FDMExec;
+    exit(-1);
+  }
+}
+
+
+void JSBSimThread::run(){
+
+
+ }
+
+bool JSBSimThread::check_crash_jsbsim(){
+  bool result;
+  return result;
+
+}

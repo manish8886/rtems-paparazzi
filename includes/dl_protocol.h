@@ -27,12 +27,16 @@
 #define DL_BOOZ_NAV_STICK 150
 #define DL_EXTERNAL_FILTER_SOLUTION 151
 #define DL_ROTORCRAFT_CAM_STICK 152
-#define DL_MSG_datalink_NB 26
+#define DL_HITL_GPS_COMMON 171
+#define DL_HITL_IR_AHRS 172
+#define DL_MSG_datalink_NB 28
 
-#define MSG_datalink_LENGTHS {0,(2+0+2+4+4+4+4+2+2+1),(2+0+1+1+4+4+4),(2+0+1+1+4+4+4),(2+0+1+1+4),(2+0+1+1),(2+0+1+1+1+1+nb_ubx_payload*1),(2+0+2+2+2+1),(2+0),(2+0+1+1+4+4+4),(2+0+1+1+1),(2+0+1+1+1+1),(2+0+1+1+nb_commands*1),(2+0+1+1+1+nb_rtcm*1),0,0,(2+0+1+1),(2+0+1+1+1),0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,(2+0+1+1+4+4),(2+0+1+1+1),(2+0+1+1+1+1+1+1),0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,(2+0+2+2),(2+0+1+1+nb_command*1),0,0,(2+0+2+1+1),(2+0+2+2+2+2),0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,(2+0+1+1+4+4+4+4+1),(2+0+1+1+1+1+1),(2+0+1+1+4+4+4+4),(2+0+1+1+1),}
+#define MSG_datalink_LENGTHS {0,(2+0+2+4+4+4+4+2+2+1),(2+0+1+1+4+4+4),(2+0+1+1+4+4+4),(2+0+1+1+4),(2+0+1+1),(2+0+1+1+1+1+nb_ubx_payload*1),(2+0+2+2+2+1),(2+0),(2+0+1+1+4+4+4),(2+0+1+1+1),(2+0+1+1+1+1),(2+0+1+1+nb_commands*1),(2+0+1+1+1+nb_rtcm*1),0,0,(2+0+1+1),(2+0+1+1+1),0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,(2+0+1+1+4+4),(2+0+1+1+1),(2+0+1+1+1+1+1+1),0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,(2+0+2+2),(2+0+1+1+nb_command*1),0,0,(2+0+2+1+1),(2+0+2+2+2+2),0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,(2+0+1+1+4+4+4+4+1),(2+0+1+1+1+1+1),(2+0+1+1+4+4+4+4),(2+0+1+1+1),0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,(2+0+1+1+8+8+8+8+8+8+8),(2+0+1+1+8+8+8+8+8+8),}
 
 /*
  Size for non variable messages
+58 : HITL_GPS_COMMON
+50 : HITL_IR_AHRS
 23 : ACINFO
 19 : BOOZ2_FMS_COMMAND
 18 : EXTERNAL_FILTER_SOLUTION
@@ -392,6 +396,41 @@
 	  DownlinkOverrun(_trans, _dev ); \
 }
 
+#define DOWNLINK_SEND_HITL_GPS_COMMON(_trans, _dev, gps_id, ac_id, lat, lon, alt, course, gspeed, climb, time){ \
+	if (DownlinkCheckFreeSpace(_trans, _dev, DownlinkSizeOf(_trans, _dev, 0+1+1+8+8+8+8+8+8+8))) {\
+	  DownlinkCountBytes(_trans, _dev, DownlinkSizeOf(_trans, _dev, 0+1+1+8+8+8+8+8+8+8)); \
+	  DownlinkStartMessage(_trans, _dev, "HITL_GPS_COMMON", DL_HITL_GPS_COMMON, 0+1+1+8+8+8+8+8+8+8) \
+	  DownlinkPutUint8ByAddr(_trans, _dev, (gps_id)); \
+	  DownlinkPutUint8ByAddr(_trans, _dev, (ac_id)); \
+	  DownlinkPutDoubleByAddr(_trans, _dev, (lat)); \
+	  DownlinkPutDoubleByAddr(_trans, _dev, (lon)); \
+	  DownlinkPutDoubleByAddr(_trans, _dev, (alt)); \
+	  DownlinkPutDoubleByAddr(_trans, _dev, (course)); \
+	  DownlinkPutDoubleByAddr(_trans, _dev, (gspeed)); \
+	  DownlinkPutDoubleByAddr(_trans, _dev, (climb)); \
+	  DownlinkPutDoubleByAddr(_trans, _dev, (time)); \
+	  DownlinkEndMessage(_trans, _dev ) \
+	} else \
+	  DownlinkOverrun(_trans, _dev ); \
+}
+
+#define DOWNLINK_SEND_HITL_IR_AHRS(_trans, _dev, ir_id, ac_id, roll, pitch, yaw, p, q, r){ \
+	if (DownlinkCheckFreeSpace(_trans, _dev, DownlinkSizeOf(_trans, _dev, 0+1+1+8+8+8+8+8+8))) {\
+	  DownlinkCountBytes(_trans, _dev, DownlinkSizeOf(_trans, _dev, 0+1+1+8+8+8+8+8+8)); \
+	  DownlinkStartMessage(_trans, _dev, "HITL_IR_AHRS", DL_HITL_IR_AHRS, 0+1+1+8+8+8+8+8+8) \
+	  DownlinkPutUint8ByAddr(_trans, _dev, (ir_id)); \
+	  DownlinkPutUint8ByAddr(_trans, _dev, (ac_id)); \
+	  DownlinkPutDoubleByAddr(_trans, _dev, (roll)); \
+	  DownlinkPutDoubleByAddr(_trans, _dev, (pitch)); \
+	  DownlinkPutDoubleByAddr(_trans, _dev, (yaw)); \
+	  DownlinkPutDoubleByAddr(_trans, _dev, (p)); \
+	  DownlinkPutDoubleByAddr(_trans, _dev, (q)); \
+	  DownlinkPutDoubleByAddr(_trans, _dev, (r)); \
+	  DownlinkEndMessage(_trans, _dev ) \
+	} else \
+	  DownlinkOverrun(_trans, _dev ); \
+}
+
 
 #define DL_ACINFO_course(_payload) ((int16_t)(*((uint8_t*)_payload+2)|*((uint8_t*)_payload+2+1)<<8))
 #define DL_ACINFO_utm_east(_payload) ((int32_t)(*((uint8_t*)_payload+4)|*((uint8_t*)_payload+4+1)<<8|((uint32_t)*((uint8_t*)_payload+4+2))<<16|((uint32_t)*((uint8_t*)_payload+4+3))<<24))
@@ -520,3 +559,22 @@
 #define DL_ROTORCRAFT_CAM_STICK_ac_id(_payload) ((uint8_t)(*((uint8_t*)_payload+2)))
 #define DL_ROTORCRAFT_CAM_STICK_tilt(_payload) ((int8_t)(*((uint8_t*)_payload+3)))
 #define DL_ROTORCRAFT_CAM_STICK_pan(_payload) ((int8_t)(*((uint8_t*)_payload+4)))
+
+#define DL_HITL_GPS_COMMON_gps_id(_payload) ((uint8_t)(*((uint8_t*)_payload+2)))
+#define DL_HITL_GPS_COMMON_ac_id(_payload) ((uint8_t)(*((uint8_t*)_payload+3)))
+#define DL_HITL_GPS_COMMON_lat(_payload) (({ union { uint64_t u; double f; } _f; _f.u = (uint64_t)(*((uint8_t*)_payload+4)|((uint64_t)*((uint8_t*)_payload+4+1))<<8|((uint64_t)*((uint8_t*)_payload+4+2))<<16|((uint64_t)*((uint8_t*)_payload+4+3))<<24|((uint64_t)*((uint8_t*)_payload+4+4))<<32|((uint64_t)*((uint8_t*)_payload+4+5))<<40|((uint64_t)*((uint8_t*)_payload+4+6))<<48|((uint64_t)*((uint8_t*)_payload+4+7))<<56); Swap32IfBigEndian(_f.u); _f.f; }))
+#define DL_HITL_GPS_COMMON_lon(_payload) (({ union { uint64_t u; double f; } _f; _f.u = (uint64_t)(*((uint8_t*)_payload+12)|((uint64_t)*((uint8_t*)_payload+12+1))<<8|((uint64_t)*((uint8_t*)_payload+12+2))<<16|((uint64_t)*((uint8_t*)_payload+12+3))<<24|((uint64_t)*((uint8_t*)_payload+12+4))<<32|((uint64_t)*((uint8_t*)_payload+12+5))<<40|((uint64_t)*((uint8_t*)_payload+12+6))<<48|((uint64_t)*((uint8_t*)_payload+12+7))<<56); Swap32IfBigEndian(_f.u); _f.f; }))
+#define DL_HITL_GPS_COMMON_alt(_payload) (({ union { uint64_t u; double f; } _f; _f.u = (uint64_t)(*((uint8_t*)_payload+20)|((uint64_t)*((uint8_t*)_payload+20+1))<<8|((uint64_t)*((uint8_t*)_payload+20+2))<<16|((uint64_t)*((uint8_t*)_payload+20+3))<<24|((uint64_t)*((uint8_t*)_payload+20+4))<<32|((uint64_t)*((uint8_t*)_payload+20+5))<<40|((uint64_t)*((uint8_t*)_payload+20+6))<<48|((uint64_t)*((uint8_t*)_payload+20+7))<<56); Swap32IfBigEndian(_f.u); _f.f; }))
+#define DL_HITL_GPS_COMMON_course(_payload) (({ union { uint64_t u; double f; } _f; _f.u = (uint64_t)(*((uint8_t*)_payload+28)|((uint64_t)*((uint8_t*)_payload+28+1))<<8|((uint64_t)*((uint8_t*)_payload+28+2))<<16|((uint64_t)*((uint8_t*)_payload+28+3))<<24|((uint64_t)*((uint8_t*)_payload+28+4))<<32|((uint64_t)*((uint8_t*)_payload+28+5))<<40|((uint64_t)*((uint8_t*)_payload+28+6))<<48|((uint64_t)*((uint8_t*)_payload+28+7))<<56); Swap32IfBigEndian(_f.u); _f.f; }))
+#define DL_HITL_GPS_COMMON_gspeed(_payload) (({ union { uint64_t u; double f; } _f; _f.u = (uint64_t)(*((uint8_t*)_payload+36)|((uint64_t)*((uint8_t*)_payload+36+1))<<8|((uint64_t)*((uint8_t*)_payload+36+2))<<16|((uint64_t)*((uint8_t*)_payload+36+3))<<24|((uint64_t)*((uint8_t*)_payload+36+4))<<32|((uint64_t)*((uint8_t*)_payload+36+5))<<40|((uint64_t)*((uint8_t*)_payload+36+6))<<48|((uint64_t)*((uint8_t*)_payload+36+7))<<56); Swap32IfBigEndian(_f.u); _f.f; }))
+#define DL_HITL_GPS_COMMON_climb(_payload) (({ union { uint64_t u; double f; } _f; _f.u = (uint64_t)(*((uint8_t*)_payload+44)|((uint64_t)*((uint8_t*)_payload+44+1))<<8|((uint64_t)*((uint8_t*)_payload+44+2))<<16|((uint64_t)*((uint8_t*)_payload+44+3))<<24|((uint64_t)*((uint8_t*)_payload+44+4))<<32|((uint64_t)*((uint8_t*)_payload+44+5))<<40|((uint64_t)*((uint8_t*)_payload+44+6))<<48|((uint64_t)*((uint8_t*)_payload+44+7))<<56); Swap32IfBigEndian(_f.u); _f.f; }))
+#define DL_HITL_GPS_COMMON_time(_payload) (({ union { uint64_t u; double f; } _f; _f.u = (uint64_t)(*((uint8_t*)_payload+52)|((uint64_t)*((uint8_t*)_payload+52+1))<<8|((uint64_t)*((uint8_t*)_payload+52+2))<<16|((uint64_t)*((uint8_t*)_payload+52+3))<<24|((uint64_t)*((uint8_t*)_payload+52+4))<<32|((uint64_t)*((uint8_t*)_payload+52+5))<<40|((uint64_t)*((uint8_t*)_payload+52+6))<<48|((uint64_t)*((uint8_t*)_payload+52+7))<<56); Swap32IfBigEndian(_f.u); _f.f; }))
+
+#define DL_HITL_IR_AHRS_ir_id(_payload) ((uint8_t)(*((uint8_t*)_payload+2)))
+#define DL_HITL_IR_AHRS_ac_id(_payload) ((uint8_t)(*((uint8_t*)_payload+3)))
+#define DL_HITL_IR_AHRS_roll(_payload) (({ union { uint64_t u; double f; } _f; _f.u = (uint64_t)(*((uint8_t*)_payload+4)|((uint64_t)*((uint8_t*)_payload+4+1))<<8|((uint64_t)*((uint8_t*)_payload+4+2))<<16|((uint64_t)*((uint8_t*)_payload+4+3))<<24|((uint64_t)*((uint8_t*)_payload+4+4))<<32|((uint64_t)*((uint8_t*)_payload+4+5))<<40|((uint64_t)*((uint8_t*)_payload+4+6))<<48|((uint64_t)*((uint8_t*)_payload+4+7))<<56); Swap32IfBigEndian(_f.u); _f.f; }))
+#define DL_HITL_IR_AHRS_pitch(_payload) (({ union { uint64_t u; double f; } _f; _f.u = (uint64_t)(*((uint8_t*)_payload+12)|((uint64_t)*((uint8_t*)_payload+12+1))<<8|((uint64_t)*((uint8_t*)_payload+12+2))<<16|((uint64_t)*((uint8_t*)_payload+12+3))<<24|((uint64_t)*((uint8_t*)_payload+12+4))<<32|((uint64_t)*((uint8_t*)_payload+12+5))<<40|((uint64_t)*((uint8_t*)_payload+12+6))<<48|((uint64_t)*((uint8_t*)_payload+12+7))<<56); Swap32IfBigEndian(_f.u); _f.f; }))
+#define DL_HITL_IR_AHRS_yaw(_payload) (({ union { uint64_t u; double f; } _f; _f.u = (uint64_t)(*((uint8_t*)_payload+20)|((uint64_t)*((uint8_t*)_payload+20+1))<<8|((uint64_t)*((uint8_t*)_payload+20+2))<<16|((uint64_t)*((uint8_t*)_payload+20+3))<<24|((uint64_t)*((uint8_t*)_payload+20+4))<<32|((uint64_t)*((uint8_t*)_payload+20+5))<<40|((uint64_t)*((uint8_t*)_payload+20+6))<<48|((uint64_t)*((uint8_t*)_payload+20+7))<<56); Swap32IfBigEndian(_f.u); _f.f; }))
+#define DL_HITL_IR_AHRS_p(_payload) (({ union { uint64_t u; double f; } _f; _f.u = (uint64_t)(*((uint8_t*)_payload+28)|((uint64_t)*((uint8_t*)_payload+28+1))<<8|((uint64_t)*((uint8_t*)_payload+28+2))<<16|((uint64_t)*((uint8_t*)_payload+28+3))<<24|((uint64_t)*((uint8_t*)_payload+28+4))<<32|((uint64_t)*((uint8_t*)_payload+28+5))<<40|((uint64_t)*((uint8_t*)_payload+28+6))<<48|((uint64_t)*((uint8_t*)_payload+28+7))<<56); Swap32IfBigEndian(_f.u); _f.f; }))
+#define DL_HITL_IR_AHRS_q(_payload) (({ union { uint64_t u; double f; } _f; _f.u = (uint64_t)(*((uint8_t*)_payload+36)|((uint64_t)*((uint8_t*)_payload+36+1))<<8|((uint64_t)*((uint8_t*)_payload+36+2))<<16|((uint64_t)*((uint8_t*)_payload+36+3))<<24|((uint64_t)*((uint8_t*)_payload+36+4))<<32|((uint64_t)*((uint8_t*)_payload+36+5))<<40|((uint64_t)*((uint8_t*)_payload+36+6))<<48|((uint64_t)*((uint8_t*)_payload+36+7))<<56); Swap32IfBigEndian(_f.u); _f.f; }))
+#define DL_HITL_IR_AHRS_r(_payload) (({ union { uint64_t u; double f; } _f; _f.u = (uint64_t)(*((uint8_t*)_payload+44)|((uint64_t)*((uint8_t*)_payload+44+1))<<8|((uint64_t)*((uint8_t*)_payload+44+2))<<16|((uint64_t)*((uint8_t*)_payload+44+3))<<24|((uint64_t)*((uint8_t*)_payload+44+4))<<32|((uint64_t)*((uint8_t*)_payload+44+5))<<40|((uint64_t)*((uint8_t*)_payload+44+6))<<48|((uint64_t)*((uint8_t*)_payload+44+7))<<56); Swap32IfBigEndian(_f.u); _f.f; }))

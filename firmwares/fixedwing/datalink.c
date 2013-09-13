@@ -162,7 +162,7 @@ void dl_parse_msg(void) {
 #endif
   } else
 #endif /** WIND_INFO */
-/*
+
 #ifdef SHITL
 	  if(msg_id== DL_HITL_GPS_COMMON){
 		  double lat    = DL_HITL_GPS_COMMON_lat(dl_buffer);
@@ -188,7 +188,7 @@ void dl_parse_msg(void) {
 		  // copy IR
 		  set_ir(roll, pitch);
 	  }else
-#endif*/
+#endif
 #ifdef HITL
   /** Infrared and GPS sensors are replaced by messages on the datalink */
   if (msg_id == DL_HITL_INFRARED) {

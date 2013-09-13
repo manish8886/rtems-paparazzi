@@ -77,6 +77,7 @@ rtems_task Init(
   Fbw(init);
   Ap(init);
   while (1) {
+	update_bat(12.0);
     Fbw(handle_periodic_tasks);
     Ap(handle_periodic_tasks);
     Fbw(event_task);
