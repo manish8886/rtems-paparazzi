@@ -15,19 +15,26 @@
 #include <fcntl.h>
 #include <apbuart.h>
 #include "uart.h"
-
 /*
  * All communication to UART device will be done through the
  * file system call of RTEMS. Therefore we will need to enable
  * posix api while building the RTEMS.
  */
+#ifdef SERIO_TESTING
+char pattern[]="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+char test_send_buffer[37]="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+char test_recv_buffer[37];
 
+#define size_send_buffer   (sizeof(test_send_buffer)/sizeof(test_send_buffer[0]))
+#define size_recv_buffer   (sizeof(test_recv_buffer)/sizeof(test_recv_buffer[0]))
+#endif
 
 typedef struct {
   const char* uart_name; //name of the uart device.
   const char sem_name[4];//semaphore name
   rtems_id semaphore_id; //id for the semaphore.
   int fd;                //file descriptor for uart.
+  uint8_t  byteAvailable;
 }uart_dev_info_t;
 
 // RTEMS has following names for the UART devices.
@@ -156,6 +163,7 @@ static void uart_init(int dev_index){
     return;
   }
 
+  uart_dev_arry[dev_index].byteAvailable=0;
   uart_dev_arry[dev_index].fd=fd;
   uart_dev_arry[dev_index].semaphore_id=sem_id;
   return;
@@ -188,12 +196,30 @@ static void uart_transmit(int dev_index,uint8_t data){
   rtems_semaphore_release(sem_id);
   return;
 }
+#ifdef SERIO_TESTING
+static void spit_test_recvbuffer(void){
+/*	int i=0;
+	for(i =0;i<size_recv_buffer;i++){
+		printf("%c",test_recv_buffer[i]);
+	}
+	memset(test_recv_buffer,0,size_recv_buffer);
+	printf("\n");*/
+	return;
+}
+#endif
+/*Assumption: This function is only get called 
+ if there is data available. Therefore, if we are able
+to get a character from the kernel, we can decrement
+the number of bytes available for this particular uart
+device.*/
 static uint8_t uart_getch(int dev_index){
   int fd;
   uint8_t data=0;
   size_t bytes;
   rtems_id sem_id;
-
+#ifdef SERIO_TESTING
+  static unsigned int test_index=0;
+#endif
   if(!ISUARTOPENED(dev_index)){
     return 0;
   }
@@ -216,9 +242,22 @@ static uint8_t uart_getch(int dev_index){
 #endif
     return data;
   }
+
+#ifdef SERIO_TESTING
+  if(test_index >=size_recv_buffer){
+	  /*Now Buffer is full.*/
+	  spit_test_recvbuffer();
+	  test_index=0;
+  }else{
+	  test_recv_buffer[test_index++]=data;
+  }
+#endif
+
+  uart_dev_arry[dev_index].byteAvailable--;
   rtems_semaphore_release(sem_id);
   return data;
 }
+
 static void uart_setbaudrate(int dev_index,uint32_t baudrate,bool_t hw_Ctrl_flow){
   int fd;
   struct termios tm;
@@ -288,6 +327,17 @@ static bool_t uart_chavailable(int dev_index){
   if(!ISUARTOPENED(dev_index)){
 	  return 0;
   }
+
+  if(uart_dev_arry[dev_index].byteAvailable>0){
+    return true;
+  }/*
+     else{
+     //check from kernel.
+     }
+    */
+  
+  
+
   fd = uart_dev_arry[dev_index].fd;
   sem_id = uart_dev_arry[dev_index].semaphore_id;
 
@@ -299,10 +349,13 @@ static bool_t uart_chavailable(int dev_index){
 	  rtems_semaphore_release(sem_id);
 	  return false;
   }
-  if(bytesQueued)
-   bresult=true;
-  else
+  if(bytesQueued){
+    bresult=true;
+    uart_dev_arry[dev_index].byteAvailable=bytesQueued;
+  }else{
 	bresult=false;
+	uart_dev_arry[dev_index].byteAvailable=0;
+  }
   rtems_semaphore_release(sem_id);
   return bresult;
 

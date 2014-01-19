@@ -28,6 +28,7 @@
 #include <drvmgr/ambapp_bus.h>
 #include <system.h>
 #include <rtems/termiostypes.h>
+
 /*set the uart resource as input driven and set this resource when uart get initialised.*/
 struct drvmgr_key grlib_drv_res_apbuart0[] ={
 												{"mode",KEY_TYPE_INT,((unsigned int)TERMIOS_IRQ_DRIVEN)},
@@ -74,6 +75,7 @@ struct drvmgr_bus_res grlib_drv_resources  ={
 rtems_task Init(
   rtems_task_argument ignored
 ){
+#ifndef SERIO_TESTING
   Fbw(init);
   Ap(init);
   while (1) {
@@ -83,5 +85,11 @@ rtems_task Init(
     Fbw(event_task);
     Ap(event_task);
   }
+#else
+  UART1Init();
+  while(1){
+	  Ap(event_task);
+  }
+#endif
   return ;
 }

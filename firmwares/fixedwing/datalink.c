@@ -162,9 +162,25 @@ void dl_parse_msg(void) {
 #endif
   } else
 #endif /** WIND_INFO */
+#ifdef SERIO_TESTING
+	  if(msg_id==DL_ACINFO){
+		  int16_t course    = DL_ACINFO_course(dl_buffer);
+		  int32_t utm_east  = DL_ACINFO_utm_east(dl_buffer);
+		  int32_t utm_north = DL_ACINFO_utm_north(dl_buffer);
+		  int32_t alt       = DL_ACINFO_alt(dl_buffer);
+		  uint32_t itow     = DL_ACINFO_itow(dl_buffer);
+		  uint16_t speed    = DL_ACINFO_speed(dl_buffer);
+		  int16_t  climb    = DL_ACINFO_climb(dl_buffer);
+		  uint8_t  ac_id    = DL_ACINFO_ac_id(dl_buffer);
 
+}else
+#endif
 #ifdef SHITL
 	  if(msg_id== DL_HITL_GPS_COMMON){
+		  uint8_t ac_id = DL_HITL_GPS_COMMON_ac_id(dl_buffer);
+		  uint8_t gps_id = DL_HITL_GPS_COMMON_gps_id(dl_buffer);
+		  (void)gps_id;
+		  (void)ac_id;
 		  double lat    = DL_HITL_GPS_COMMON_lat(dl_buffer);
 		  double lon    = DL_HITL_GPS_COMMON_lon(dl_buffer);
 		  double alt    = DL_HITL_GPS_COMMON_alt(dl_buffer);

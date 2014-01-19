@@ -602,6 +602,7 @@ void reporting_task( void ) {
 }
 
 /*********** EVENT ***********************************************************/
+#ifndef SERIO_TESTING
 void event_task_ap( void ) {
 
 #ifndef SINGLE_MCU
@@ -652,7 +653,11 @@ void event_task_ap( void ) {
 #endif
 
 } /* event_task_ap() */
-
+#else
+void event_task_ap( void ) {
+	  DatalinkEvent();
+}
+#endif
 #if USE_GPS
 static inline void on_gps_solution( void ) {
   ins_update_gps();
